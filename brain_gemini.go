@@ -112,7 +112,7 @@ func (b *geminiBrain) plan(ctx context.Context, goal string, covered, known []st
 		return plan{}, err
 	}
 	var p plan
-	if err := json.Unmarshal(raw, &p); err != nil {
+	if err := decodeFirstJSON(raw, &p); err != nil {
 		return plan{}, fmt.Errorf("decode plan: %w", err)
 	}
 	return p, nil

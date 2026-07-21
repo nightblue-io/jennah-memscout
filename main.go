@@ -46,6 +46,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha1"
@@ -608,16 +609,26 @@ type findings struct {
 	Triples []triple `json:"triples"`
 }
 
+// decodeFirstJSON decodes the first top-level JSON value from b into v, tolerating
+// any trailing bytes after it. Some models (or a gateway in front of them) append
+// stray prose or markup — e.g. "<...>" — after the tool-call JSON; plain
+// json.Unmarshal rejects that as `invalid character '<' after top-level value`,
+// whereas a json.Decoder reads exactly one value and stops.
+func decodeFirstJSON(b []byte, v any) error {
+	return json.NewDecoder(bytes.NewReader(b)).Decode(v)
+}
+
 // UnmarshalJSON tolerates models (Gemini in particular) that occasionally emit
 // the triples array as a JSON-encoded string ("[{...}]") instead of a real
-// array. It decodes the normal shape first, and on failure falls back to
-// unwrapping a string-encoded array.
+// array, and models/gateways that append stray bytes after the JSON object. It
+// decodes the normal shape first, and on failure falls back to unwrapping a
+// string-encoded array.
 func (f *findings) UnmarshalJSON(b []byte) error {
 	var aux struct {
 		Summary string          `json:"summary"`
 		Triples json.RawMessage `json:"triples"`
 	}
-	if err := json.Unmarshal(b, &aux); err != nil {
+	if err := decodeFirstJSON(b, &aux); err != nil {
 		return err
 	}
 	f.Summary = aux.Summary
@@ -636,7 +647,7 @@ func (f *findings) UnmarshalJSON(b []byte) error {
 	if strings.TrimSpace(s) == "" {
 		return nil
 	}
-	return json.Unmarshal([]byte(s), &f.Triples)
+	return decodeFirstJSON([]byte(s), &f.Triples)
 }
 
 func loadState(path string) (*state, error) {

@@ -75,7 +75,7 @@ func (b *anthropicBrain) plan(ctx context.Context, goal string, covered, known [
 		return plan{}, err
 	}
 	var p plan
-	if err := json.Unmarshal(raw, &p); err != nil {
+	if err := decodeFirstJSON(raw, &p); err != nil {
 		return plan{}, fmt.Errorf("decode plan: %w", err)
 	}
 	return p, nil
