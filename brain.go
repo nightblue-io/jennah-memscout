@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// brain is the pluggable reasoning LLM. Unlike memchat's single chat() call, an
-// autonomous researcher needs three distinct capabilities, each provider-agnostic:
+// brain is the pluggable reasoning LLM. An autonomous researcher needs three
+// distinct capabilities, each provider-agnostic:
 //
 //   - plan:     decide the next subquestion (or stop) given goal + progress.
 //   - research: answer a subquestion, returning a summary + extracted triples.

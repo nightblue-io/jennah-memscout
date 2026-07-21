@@ -6,11 +6,9 @@ authenticated with a `jennah_sk_` API key. No Jennah server internals are
 imported - this is a standalone Go module, so it doubles as a reference for
 outside integrators.
 
-Where its sibling **memchat** is *reactive* (a human speaks, it does one
-`query → think → commit` turn), memscout is *proactive*: you hand it a goal and
-walk away. It self-directs a research loop with **no human in the turn**, using
-Jennah as its durable working memory - so the process is stateless and the run
-**resumes across restarts**.
+memscout is *proactive*: you hand it a goal and walk away. It self-directs a
+research loop with **no human in the turn**, using Jennah as its durable working
+memory - so the process is stateless and the run **resumes across restarts**.
 
 It leans on the parts of **unified memory** a chatbot barely touches: the
 **execution log as a plan-of-record** (what makes it resumable), a **deep

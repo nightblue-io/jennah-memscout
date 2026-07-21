@@ -1,12 +1,11 @@
 // Command memscout is a demo agent: an AUTONOMOUS research/knowledge-base builder
 // that self-directs a plan → research → commit loop with NO human in the turn, and
-// treats Jennah as its durable working memory. Like memchat, it consumes Jennah's
-// public memory APIs exactly the way any external agent would — plain HTTP/JSON
+// treats Jennah as its durable working memory. It consumes Jennah's public
+// memory APIs exactly the way any external agent would — plain HTTP/JSON
 // through the jennah-proxy gateway, authenticated with a jennah_sk_ API key — and
 // is a standalone Go module (its own go.mod, not part of the server build) so it
 // models a real outside consumer.
 //
-// Where memchat is reactive (a human speaks, it does one query→think→commit turn),
 // memscout is proactive: you hand it a --goal and walk away. It runs a loop until
 // it decides the goal is covered (or --max-steps is hit):
 //
