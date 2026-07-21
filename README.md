@@ -139,3 +139,6 @@ a fresh knowledge base.
   covered / entities known) each step, the dedup hit count before researching,
   and the commit receipt (`log=… vec=… nodes=… edges=…`) after - handy when demoing.
 - Fusion (`link:true`) is intentionally not used - it returns Unimplemented.
+- Tried-1: "How does the Raft consensus algorithm work?"
+- Tried-2: "How does the transformer architecture work in LLMs?"
+- Tried-2: "How does the earth came about and the theories around it?"
