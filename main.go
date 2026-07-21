@@ -91,7 +91,7 @@ func main() {
 		jennahKey    = flag.String("jennah-api-key", "", "Jennah API key (jennah_sk_...); falls back to $JENNAH_API_KEY")
 		anthropicKey = flag.String("anthropic-api-key", "", "Anthropic API key (sk-ant-...); falls back to $ANTHROPIC_API_KEY")
 		goal         = flag.String("goal", "", "research goal/topic; the agent autonomously builds a knowledge base about it")
-		maxSteps     = flag.Int("max-steps", 12, "maximum research steps per run before stopping")
+		maxSteps     = flag.Int("max-steps", 12, "maximum total research steps (across runs) before stopping")
 		ask          = flag.String("ask", "", "answer a question from the accumulated memory, then exit (no new research)")
 		show         = flag.Bool("show", false, "print the accumulated knowledge base, then exit (no new research)")
 	)
@@ -196,7 +196,11 @@ func main() {
 // research runs the autonomous loop: read the log (resume), consult the planner,
 // research one subquestion, commit, repeat — until the planner stops or maxSteps.
 func research(ctx context.Context, jc *jennahClient, br brain, agentID, goal string, maxSteps int) error {
-	for step := 1; step <= maxSteps; step++ {
+	// Progress is global, not per-run: the step number is derived from the number
+	// of subquestions already committed to the log (the resume state), so stopping
+	// and rerunning continues where it left off instead of restarting at 1.
+	prevDone := -1
+	for {
 		covered, err := coveredSubquestions(ctx, jc, agentID)
 		if err != nil {
 			return fmt.Errorf("log recall: %w", err)
@@ -205,7 +209,21 @@ func research(ctx context.Context, jc *jennahClient, br brain, agentID, goal str
 		if err != nil {
 			return fmt.Errorf("graph recall: %w", err)
 		}
-		vlog("resume state: %d subquestion(s) covered, %d entity(ies) known", len(covered), len(known))
+		done := len(covered)
+		vlog("resume state: %d subquestion(s) covered, %d entity(ies) known", done, len(known))
+
+		if done >= maxSteps {
+			fmt.Printf("\nreached -max-steps (%d); rerun to continue where it left off.\n", maxSteps)
+			return nil
+		}
+		// Backstop: if a committed step failed to advance the covered count (planner
+		// repeat, or the log query cap is reached), stop rather than loop forever.
+		if done == prevDone {
+			fmt.Println("\nno new ground covered; stopping.")
+			return nil
+		}
+		prevDone = done
+		step := done + 1
 
 		p, err := br.plan(ctx, goal, covered, known)
 		if err != nil {
@@ -242,8 +260,6 @@ func research(ctx context.Context, jc *jennahClient, br brain, agentID, goal str
 		fmt.Printf("  [%d/%d] %s  →  %d fact(s)\n", step, maxSteps, singleLine(truncate(sq, 80)), len(f.Triples))
 		printReceipt(resp)
 	}
-	fmt.Printf("\nreached -max-steps (%d); rerun to continue where it left off.\n", maxSteps)
-	return nil
 }
 
 // commitFindings writes one research step atomically: the prose summary as a vector
