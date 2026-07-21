@@ -608,6 +608,37 @@ type findings struct {
 	Triples []triple `json:"triples"`
 }
 
+// UnmarshalJSON tolerates models (Gemini in particular) that occasionally emit
+// the triples array as a JSON-encoded string ("[{...}]") instead of a real
+// array. It decodes the normal shape first, and on failure falls back to
+// unwrapping a string-encoded array.
+func (f *findings) UnmarshalJSON(b []byte) error {
+	var aux struct {
+		Summary string          `json:"summary"`
+		Triples json.RawMessage `json:"triples"`
+	}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+	f.Summary = aux.Summary
+	f.Triples = nil
+	if len(aux.Triples) == 0 || string(aux.Triples) == "null" {
+		return nil
+	}
+	if err := json.Unmarshal(aux.Triples, &f.Triples); err == nil {
+		return nil
+	}
+	// Fallback: triples came back as a JSON string containing the array.
+	var s string
+	if err := json.Unmarshal(aux.Triples, &s); err != nil {
+		return fmt.Errorf("triples: not an array or string-encoded array")
+	}
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return json.Unmarshal([]byte(s), &f.Triples)
+}
+
 func loadState(path string) (*state, error) {
 	st := &state{}
 	b, err := os.ReadFile(path)
