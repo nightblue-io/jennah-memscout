@@ -257,7 +257,7 @@ func research(ctx context.Context, jc *jennahClient, br brain, agentID, goal str
 			return fmt.Errorf("commit findings: %w", err)
 		}
 		fmt.Printf("  [%d/%d] %s  →  %d fact(s)\n", step, maxSteps, singleLine(truncate(sq, 80)), len(f.Triples))
-		printReceipt(resp)
+		printReceipt(resp, sq)
 	}
 }
 
@@ -526,13 +526,38 @@ func commit(ctx context.Context, jc *jennahClient, agentID string, req *agentpb.
 	return &resp, err
 }
 
-func printReceipt(r *agentpb.CommitMemoryResponse) {
+// printReceipt logs the commit counts and acts on the receipt's truncation report.
+// subq is the sub-question this step researched, used to name the finding whose
+// embedding was truncated (chunk ids here are random, so they identify nothing on
+// their own).
+func printReceipt(r *agentpb.CommitMemoryResponse, subq string) {
 	ts := "?"
 	if t := r.GetCommitTimestamp(); t != nil {
 		ts = t.AsTime().UTC().Format(time.RFC3339)
 	}
 	vlog("committed: log=%d vec=%d nodes=%d edges=%d @ %s",
 		r.GetExecutionLogRows(), r.GetVectorRows(), r.GetGraphNodeRows(), r.GetGraphEdgeRows(), ts)
+
+	// The commit SUCCEEDED, but the embedding model truncated content past its
+	// input limit (~2048 tokens): the finding's prose is stored in full while its
+	// vector covers only the beginning. This matters most at the end of a run —
+	// answering the original goal recalls accumulated findings semantically, so a
+	// long finding can be missed on the strength of anything past the cut. It also
+	// weakens the "do I already know this?" dedup hint on later steps.
+	//
+	// Printed unconditionally, NOT under vlog: an autonomous run produces a lot of
+	// output, and a degraded index is exactly the thing a caller should not have to
+	// opt in to hearing about.
+	//
+	// reject_on_truncation is deliberately NOT set. Failing the whole step would
+	// throw away a finding the model already paid to produce; storing it with a
+	// partial vector, and saying so, keeps the research and flags the gap. Asking
+	// the brain for shorter summaries is the real fix if this fires often.
+	if ids := r.GetTruncatedChunkIds(); len(ids) > 0 {
+		fmt.Fprintf(os.Stderr, "[memory warning] finding too long to embed in full, "+
+			"later recall will only see its beginning: %s (chunk %s)\n",
+			singleLine(truncate(subq, 80)), strings.Join(ids, ", "))
+	}
 }
 
 // ---- HTTP client (protojson over the gateway, Bearer auth) ----

@@ -3,7 +3,7 @@ module github.com/nightblue-io/jennah-memscout
 go 1.26.5
 
 require (
-	github.com/alphauslabs/jennah-sdk-go v0.23.0
+	github.com/alphauslabs/jennah-sdk-go v0.27.0
 	github.com/anthropics/anthropic-sdk-go v1.58.0
 	google.golang.org/genai v1.64.0
 	google.golang.org/protobuf v1.36.11
