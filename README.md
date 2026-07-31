@@ -38,6 +38,10 @@ Jennah; the local state file holds nothing but the id. Kill it mid-run, relaunch
 and it reads its own execution log to continue where it stopped. Graph writes are
 idempotent server side, so re-researching a topic just converges.
 
+New workspaces are created as `demo.memscout_<random>`. `.` is the agent-selector
+separator, and selector matching is segment-anchored, so a role carrying the single
+selector `demo.*` reaches every workspace this demo mints - and nothing else.
+
 Then inspect or query what it built - straight from memory, no LLM needed for
 `-show`:
 
