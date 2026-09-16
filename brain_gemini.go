@@ -13,7 +13,7 @@ import (
 // geminiModel keeps the demo snappy and cheap; swap to "gemini-2.5-pro" for
 // maximum research quality. The same id works on both the AI Studio (API-key) and
 // Vertex AI backends.
-const geminiModel = "gemini-2.5-flash"
+const geminiModel = "gemini-3.8-flash"
 
 // geminiBrain is the Google Gemini backend. It talks to either AI Studio (an API
 // key in GEMINI_API_KEY / GOOGLE_API_KEY) or Vertex AI (GCP project + location +
