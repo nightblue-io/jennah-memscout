@@ -111,7 +111,7 @@ go run . -region us-central1              # pin the agent's home region (or $JEN
 go run . -jennah-api-key jennah_sk_... -anthropic-api-key sk-ant-...
 ```
 
-On start it prints the chosen brain, e.g. `reasoning model: anthropic/claude-sonnet-5`
+On start it prints the chosen brain, e.g. `reasoning model: anthropic/claude-sonnet-5-5`
 or `reasoning model: gemini/gemini-3.8-flash (vertex:my-proj/us-central1)`.
 
 Give it a goal, watch it research a handful of subquestions and stop on its own
@@ -122,7 +122,7 @@ a fresh knowledge base.
 
 ## Notes
 
-- Each provider defaults to a snappy/cheap model (`claude-sonnet-5`,
+- Each provider defaults to a snappy/cheap model (`claude-sonnet-5-5`,
   `gemini-3.8-flash`); edit `anthropicModel` in `brain_anthropic.go`
   (→ `anthropic.ModelClaudeOpus4_8`) or `geminiModel` in `brain_gemini.go`
   (→ `gemini-2.5-pro`) for max research quality. Backends live behind the `brain`

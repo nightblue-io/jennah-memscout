@@ -12,7 +12,7 @@ import (
 
 // anthropicModel keeps the demo snappy and cheap; swap to
 // anthropic.ModelClaudeOpus4_8 for maximum research quality.
-const anthropicModel = anthropic.Model("claude-sonnet-5")
+const anthropicModel = anthropic.Model("claude-sonnet-5-5")
 
 // anthropicBrain is the Claude backend. Each call is stateless (no cross-step
 // transcript): the agent's memory lives in Jennah, and every prompt is rebuilt
